@@ -41,10 +41,21 @@ pub fn canvas_draw_start(
 
             let new_x = event.offset_x() as f64;
             let new_y = event.offset_y() as f64;
-            context.begin_path();
-            context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
-            context.set_line_width(state.borrow().get_pen_thin());
-            context.move_to(new_x, new_y);
+            state.borrow_mut().set_start_x( new_x );
+            state.borrow_mut().set_start_y( new_y );
+
+            if state.borrow_mut().get_item() != "Rect" {
+                context.begin_path();
+                context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
+                context.set_line_width(state.borrow().get_pen_thin());
+                context.move_to(new_x, new_y);
+            } else {
+                context.begin_path();
+                context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
+                context.set_line_width(state.borrow().get_pen_thin());
+                context.move_to(new_x, new_y);
+            }
+
         }) as Box<dyn FnMut(_)>);
 
         canvas
@@ -57,14 +68,28 @@ pub fn canvas_draw_start(
     {
         let context = context.clone();
         let pressed = pressed.clone();
+        let state = state.clone();
 
         let mouse_up = Closure::wrap(Box::new(move |event: MouseEvent| {
             pressed.set(false);
             let new_x = event.offset_x() as f64;
             let new_y = event.offset_y() as f64;
-            context.fill_rect(new_x, new_y, 1.0, 1.0);
-            context.line_to(new_x, new_y);
-            context.stroke();
+            // context.fill_rect(new_x, new_y, 1.0, 1.0);
+            // context.line_to(new_x, new_y);
+            // context.stroke();
+
+            if state.borrow_mut().get_item() != "Rect" {
+                context.fill_rect(new_x, new_y, 1.0, 1.0);
+                context.line_to(new_x, new_y);
+                context.stroke();
+            } else {
+                context.fill_rect(new_x, new_y, 1.0, 1.0);
+                let x = state.borrow().get_start_x();
+                let y = state.borrow().get_start_y();
+
+                context.rect( x, y, new_x - x, new_y - y);
+                context.stroke();
+            }
         }) as Box<dyn FnMut(_)>);
 
         canvas.add_event_listener_with_callback("mouseup", mouse_up.as_ref().unchecked_ref())?;
@@ -76,13 +101,21 @@ pub fn canvas_draw_start(
     {
         let context = context.clone();
         let pressed = pressed.clone();
+        let state = state.clone();
 
         let mouse_move = Closure::wrap(Box::new(move |event: MouseEvent| {
             if pressed.get() {
                 let new_x = event.offset_x() as f64;
                 let new_y = event.offset_y() as f64;
-                context.line_to(new_x, new_y);
-                context.stroke();
+                // context.line_to(new_x, new_y);
+                // context.stroke();
+                if state.borrow_mut().get_item() != "Rect" {
+                    context.line_to(new_x, new_y);
+                    context.stroke();
+                } else {
+                    // context.rect(0.0, 0.0, new_x, new_y);
+                    // context.stroke();
+                }
             }
         }) as Box<dyn FnMut(_)>);
 

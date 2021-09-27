@@ -4,11 +4,14 @@ pub struct State {
     preview_w: u32,
     preview_h: u32,
     pen_thin: f64,
+    start_x : f64,
+    start_y : f64,
     color: String,
     preview_image: Vec<String>,
     undo_image_data: Vec<web_sys::ImageData>,
     redo_image_data: Vec<web_sys::ImageData>,
     frame_speed: f64,
+    item : String,
 }
 
 impl State {
@@ -19,12 +22,23 @@ impl State {
             preview_w: w / 5,
             preview_h: h / 5,
             pen_thin: 1.0,                //TODO not hardcode
+            start_x: 0.0,                //TODO not hardcode
+            start_y: 0.0,                //TODO not hardcode
             color: "#000000".to_string(), //TODO not hardcode
             preview_image: vec![],
             undo_image_data: vec![],
             redo_image_data: vec![],
             frame_speed: 0.33,
+            item : String::from("Line"),
         }
+    }
+
+    pub fn get_item(&self) -> String {
+        self.item.clone() // not implement Copy trait
+    }
+
+    pub fn set_item(&mut self, item: String) {
+        self.item = item;
     }
 
     pub fn get_color(&self) -> String {
@@ -41,6 +55,22 @@ impl State {
 
     pub fn set_pen_thin(&mut self, pen_thin: f64) {
         self.pen_thin = pen_thin;
+    }
+
+    pub fn get_start_x(&self) -> f64 {
+        self.start_x
+    }
+
+    pub fn set_start_x(&mut self, start_x: f64) {
+        self.start_x = start_x;
+    }
+
+    pub fn get_start_y(&self) -> f64 {
+        self.start_y
+    }
+
+    pub fn set_start_y(&mut self, start_y: f64) {
+        self.start_y = start_y;
     }
 
     pub fn get_width(&self) -> u32 {

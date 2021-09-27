@@ -38,6 +38,10 @@ pub fn init_toolbar(
         toolbar.append_child(&pen_thin)?;
     }
 
+    // rectangle
+    let rect = create_rect_element(&document, canvas, state)?;
+    toolbar.append_child(&rect)?;
+
     // undo
     let undo = create_undo_element(&document, canvas, state)?;
     toolbar.append_child(&undo)?;
@@ -129,6 +133,39 @@ fn create_pen_element(document: &Document, canvas: &HtmlCanvasElement) -> Result
 
     Ok(element)
 }
+
+//
+
+fn create_rect_element(document: &Document, canvas: &HtmlCanvasElement, state: &Rc<RefCell<State>>) -> Result<Element, JsValue> {
+    let element = document.create_element("div")?;
+    element.set_attribute(
+        "style",
+        "height: 50px; width: 50px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid #9b9b9b; background-image:url(https://cdn-icons-png.flaticon.com/512/3496/3496573.png); background-size: 100%;",
+    )?;
+
+    let context = canvas
+        .get_context("2d")
+        .expect("Could not get context")
+        .unwrap()
+        .dyn_into::<CanvasRenderingContext2d>()
+        .unwrap();
+
+    let state = state.clone();
+    let handle_click = Closure::wrap(Box::new(move || {
+        state.borrow_mut().set_item( String::from("Rect") );
+        context
+            .set_global_composite_operation("source-over")
+            .unwrap();
+    }) as Box<dyn FnMut()>);
+
+    element.add_event_listener_with_callback("click", handle_click.as_ref().unchecked_ref())?;
+
+    handle_click.forget();
+
+    Ok(element)
+}
+
+//
 
 fn create_eraser_element(
     document: &Document,
