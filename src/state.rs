@@ -1,3 +1,11 @@
+#[derive(Copy, Clone, Debug)]
+pub enum Action
+{
+  Rect,
+  Line,
+  Eraser,
+}
+
 pub struct State {
     width: u32,
     height: u32,
@@ -11,7 +19,7 @@ pub struct State {
     undo_image_data: Vec<web_sys::ImageData>,
     redo_image_data: Vec<web_sys::ImageData>,
     frame_speed: f64,
-    item : String,
+    action : Action,
 }
 
 impl State {
@@ -29,16 +37,16 @@ impl State {
             undo_image_data: vec![],
             redo_image_data: vec![],
             frame_speed: 0.33,
-            item : String::from("Line"),
+            action : Action::Line,
         }
     }
 
-    pub fn get_item(&self) -> String {
-        self.item.clone() // not implement Copy trait
+    pub fn get_action(&self) -> Action {
+        self.action
     }
 
-    pub fn set_item(&mut self, item: String) {
-        self.item = item;
+    pub fn set_action(&mut self, action: Action) {
+        self.action = action;
     }
 
     pub fn get_color(&self) -> String {

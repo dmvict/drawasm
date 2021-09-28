@@ -7,7 +7,7 @@ use web_sys::{
     HtmlImageElement, HtmlInputElement,
 };
 
-use crate::state::State;
+use crate::state::{ State, Action };
 
 pub fn init_toolbar(
     toolbar: &Element,
@@ -25,11 +25,11 @@ pub fn init_toolbar(
     toolbar.append_child(&color_pick)?;
 
     // pen
-    let pen = create_pen_element(&document, canvas)?;
+    let pen = create_pen_element(&document, canvas, state)?;
     toolbar.append_child(&pen)?;
 
     // eraser
-    let eraser = create_eraser_element(&document, canvas)?;
+    let eraser = create_eraser_element(&document, canvas, state)?;
     toolbar.append_child(&eraser)?;
 
     // pen thin
@@ -107,7 +107,7 @@ fn create_pen_thin_element(
     Ok(element)
 }
 
-fn create_pen_element(document: &Document, canvas: &HtmlCanvasElement) -> Result<Element, JsValue> {
+fn create_pen_element(document: &Document, canvas: &HtmlCanvasElement, state: &Rc<RefCell<State>>) -> Result<Element, JsValue> {
     let element = document.create_element("div")?;
     element.set_attribute(
         "style",
@@ -121,10 +121,10 @@ fn create_pen_element(document: &Document, canvas: &HtmlCanvasElement) -> Result
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
 
+    let state = state.clone();
     let handle_click = Closure::wrap(Box::new(move || {
-        context
-            .set_global_composite_operation("source-over")
-            .unwrap();
+        state.borrow_mut().set_action( Action::Line );
+        context .set_global_composite_operation("source-over") .unwrap();
     }) as Box<dyn FnMut()>);
 
     element.add_event_listener_with_callback("click", handle_click.as_ref().unchecked_ref())?;
@@ -152,7 +152,7 @@ fn create_rect_element(document: &Document, canvas: &HtmlCanvasElement, state: &
 
     let state = state.clone();
     let handle_click = Closure::wrap(Box::new(move || {
-        state.borrow_mut().set_item( String::from("Rect") );
+        state.borrow_mut().set_action( Action::Rect );
         context
             .set_global_composite_operation("source-over")
             .unwrap();
@@ -170,6 +170,7 @@ fn create_rect_element(document: &Document, canvas: &HtmlCanvasElement, state: &
 fn create_eraser_element(
     document: &Document,
     canvas: &HtmlCanvasElement,
+    state: &Rc<RefCell<State>>,
 ) -> Result<Element, JsValue> {
     let element = document.create_element("div")?;
     element.set_attribute(
@@ -184,10 +185,10 @@ fn create_eraser_element(
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
 
+    let state = state.clone();
     let handle_click = Closure::wrap(Box::new(move || {
-        context
-            .set_global_composite_operation("destination-out")
-            .unwrap();
+        state.borrow_mut().set_action( Action::Eraser );
+        context.set_global_composite_operation("destination-out").unwrap();
     }) as Box<dyn FnMut()>);
 
     element.add_event_listener_with_callback("click", handle_click.as_ref().unchecked_ref())?;

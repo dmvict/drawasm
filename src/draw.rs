@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, MouseEvent};
 
-use crate::state::State;
+use crate::state::{ State, Action };
 
 // setup mouse event listener for drawing and start
 pub fn canvas_draw_start(
@@ -44,18 +44,20 @@ pub fn canvas_draw_start(
             state.borrow_mut().set_start_x( new_x );
             state.borrow_mut().set_start_y( new_y );
 
-            if state.borrow_mut().get_item() != "Rect" {
-                context.begin_path();
-                context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
-                context.set_line_width(state.borrow().get_pen_thin());
-                context.move_to(new_x, new_y);
-            } else {
-                context.begin_path();
-                context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
-                context.set_line_width(state.borrow().get_pen_thin());
-                context.move_to(new_x, new_y);
-            }
-
+            match state.borrow().get_action() {
+                Action::Rect => {
+                    context.begin_path();
+                    context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
+                    context.set_line_width(state.borrow().get_pen_thin());
+                    context.move_to(new_x, new_y);
+                },
+                _ => {
+                    context.begin_path();
+                    context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
+                    context.set_line_width(state.borrow().get_pen_thin());
+                    context.move_to(new_x, new_y);
+                },
+            };
         }) as Box<dyn FnMut(_)>);
 
         canvas
@@ -78,18 +80,21 @@ pub fn canvas_draw_start(
             // context.line_to(new_x, new_y);
             // context.stroke();
 
-            if state.borrow_mut().get_item() != "Rect" {
-                context.fill_rect(new_x, new_y, 1.0, 1.0);
-                context.line_to(new_x, new_y);
-                context.stroke();
-            } else {
-                context.fill_rect(new_x, new_y, 1.0, 1.0);
-                let x = state.borrow().get_start_x();
-                let y = state.borrow().get_start_y();
+            match state.borrow().get_action() {
+                Action::Rect => {
+                    context.fill_rect(new_x, new_y, 1.0, 1.0);
+                    let x = state.borrow().get_start_x();
+                    let y = state.borrow().get_start_y();
 
-                context.rect( x, y, new_x - x, new_y - y);
-                context.stroke();
-            }
+                    context.rect( x, y, new_x - x, new_y - y);
+                    context.stroke();
+                },
+                _ => {
+                    context.fill_rect(new_x, new_y, 1.0, 1.0);
+                    context.line_to(new_x, new_y);
+                    context.stroke();
+                }
+            };
         }) as Box<dyn FnMut(_)>);
 
         canvas.add_event_listener_with_callback("mouseup", mouse_up.as_ref().unchecked_ref())?;
@@ -109,13 +114,13 @@ pub fn canvas_draw_start(
                 let new_y = event.offset_y() as f64;
                 // context.line_to(new_x, new_y);
                 // context.stroke();
-                if state.borrow_mut().get_item() != "Rect" {
-                    context.line_to(new_x, new_y);
-                    context.stroke();
-                } else {
-                    // context.rect(0.0, 0.0, new_x, new_y);
-                    // context.stroke();
-                }
+                match state.borrow().get_action() {
+                    Action::Rect => {},
+                    _ => {
+                        context.line_to(new_x, new_y);
+                        context.stroke();
+                    }
+                };
             }
         }) as Box<dyn FnMut(_)>);
 
