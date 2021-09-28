@@ -1,25 +1,63 @@
-#[derive(Copy, Clone, Debug)]
-pub enum Action
+
+#[derive(Clone, Debug)]
+pub enum Shape
 {
-  Rect,
-  Line,
+  Rect( Rect ),
+  FreeLine,
   Eraser,
 }
 
-pub struct State {
-    width: u32,
-    height: u32,
-    preview_w: u32,
-    preview_h: u32,
-    pen_thin: f64,
-    start_x : f64,
-    start_y : f64,
-    color: String,
-    preview_image: Vec<String>,
-    undo_image_data: Vec<web_sys::ImageData>,
-    redo_image_data: Vec<web_sys::ImageData>,
-    frame_speed: f64,
-    action : Action,
+#[derive(Clone, Debug)]
+pub struct Item
+{
+  id : usize,
+  shape : Shape,
+}
+
+impl Item
+{
+  pub fn new( shape : Shape ) -> Item
+  {
+    Item { id : 0, shape }
+  }
+}
+
+#[derive(Clone, Debug)]
+pub struct Rect
+{
+  x : f64,
+  y : f64,
+  width : f64,
+  height : f64,
+  angle : f64,
+}
+
+impl Rect
+{
+  pub fn new( x : f64, y : f64, width : f64, height : f64, angle : f64 ) -> Rect
+  {
+    Rect { x, y, width, height, angle }
+  }
+}
+
+//
+
+pub struct State
+{
+  width: u32,
+  height: u32,
+  preview_w: u32,
+  preview_h: u32,
+  pen_thin: f64,
+  start_x : f64,
+  start_y : f64,
+  color: String,
+  preview_image: Vec<String>,
+  undo_image_data: Vec<web_sys::ImageData>,
+  redo_image_data: Vec<web_sys::ImageData>,
+  frame_speed: f64,
+  action : Shape,
+  shapes : Vec<Item>,
 }
 
 impl State {
@@ -37,15 +75,16 @@ impl State {
             undo_image_data: vec![],
             redo_image_data: vec![],
             frame_speed: 0.33,
-            action : Action::Line,
+            action : Shape::FreeLine,
+            shapes : vec![],
         }
     }
 
-    pub fn get_action(&self) -> Action {
-        self.action
+    pub fn get_action(&self) -> Shape {
+        self.action.clone()
     }
 
-    pub fn set_action(&mut self, action: Action) {
+    pub fn set_action(&mut self, action: Shape) {
         self.action = action;
     }
 
@@ -140,5 +179,9 @@ impl State {
 
     pub fn set_frame_speed(&mut self, frame_speed: f64) {
         self.frame_speed = frame_speed;
+    }
+
+    pub fn item_push(&mut self, item: Item) {
+        self.shapes.push( item );
     }
 }

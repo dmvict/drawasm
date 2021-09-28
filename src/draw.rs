@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, MouseEvent};
 
-use crate::state::{ State, Action };
+use crate::state::{ State, Shape, Item, Rect };
 
 // setup mouse event listener for drawing and start
 pub fn canvas_draw_start(
@@ -45,7 +45,7 @@ pub fn canvas_draw_start(
             state.borrow_mut().set_start_y( new_y );
 
             match state.borrow().get_action() {
-                Action::Rect => {
+                Shape::Rect( _ ) => {
                     context.begin_path();
                     context.set_stroke_style(&JsValue::from(state.borrow().get_color()));
                     context.set_line_width(state.borrow().get_pen_thin());
@@ -80,11 +80,13 @@ pub fn canvas_draw_start(
             // context.line_to(new_x, new_y);
             // context.stroke();
 
-            match state.borrow().get_action() {
-                Action::Rect => {
+            let mut borowed = state.borrow_mut();
+            match borowed.get_action() {
+                Shape::Rect( _ ) => {
                     context.fill_rect(new_x, new_y, 1.0, 1.0);
-                    let x = state.borrow().get_start_x();
-                    let y = state.borrow().get_start_y();
+                    let x = borowed.get_start_x();
+                    let y = borowed.get_start_y();
+                    borowed.item_push( Item::new( Shape::Rect( Rect::new( x, y, new_x - x, new_y - y, 0.0 ) ) ) );
 
                     context.rect( x, y, new_x - x, new_y - y);
                     context.stroke();
@@ -115,7 +117,7 @@ pub fn canvas_draw_start(
                 // context.line_to(new_x, new_y);
                 // context.stroke();
                 match state.borrow().get_action() {
-                    Action::Rect => {},
+                    Shape::Rect( _ ) => {},
                     _ => {
                         context.line_to(new_x, new_y);
                         context.stroke();

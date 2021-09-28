@@ -7,7 +7,7 @@ use web_sys::{
     HtmlImageElement, HtmlInputElement,
 };
 
-use crate::state::{ State, Action };
+use crate::state::{ State, Shape, Rect };
 
 pub fn init_toolbar(
     toolbar: &Element,
@@ -123,7 +123,7 @@ fn create_pen_element(document: &Document, canvas: &HtmlCanvasElement, state: &R
 
     let state = state.clone();
     let handle_click = Closure::wrap(Box::new(move || {
-        state.borrow_mut().set_action( Action::Line );
+        state.borrow_mut().set_action( Shape::FreeLine );
         context .set_global_composite_operation("source-over") .unwrap();
     }) as Box<dyn FnMut()>);
 
@@ -152,7 +152,7 @@ fn create_rect_element(document: &Document, canvas: &HtmlCanvasElement, state: &
 
     let state = state.clone();
     let handle_click = Closure::wrap(Box::new(move || {
-        state.borrow_mut().set_action( Action::Rect );
+        state.borrow_mut().set_action( Shape::Rect( Rect::new( 0.0, 0.0, 0.0, 0.0, 0.0 ) ) );
         context
             .set_global_composite_operation("source-over")
             .unwrap();
@@ -187,7 +187,7 @@ fn create_eraser_element(
 
     let state = state.clone();
     let handle_click = Closure::wrap(Box::new(move || {
-        state.borrow_mut().set_action( Action::Eraser );
+        state.borrow_mut().set_action( Shape::Eraser );
         context.set_global_composite_operation("destination-out").unwrap();
     }) as Box<dyn FnMut()>);
 
