@@ -38,6 +38,28 @@ impl Rect
   {
     Rect { x, y, width, height, angle }
   }
+
+  pub fn contains( &self, x : f64, y : f64 ) -> bool
+  {
+    let mut self_x = self.x;
+    let mut self_width = self.width;
+    let mut self_y = self.y;
+    let mut self_height = self.height;
+
+    if self.width < 0.0
+    {
+      self_x = self.x + self.width;
+      self_width = self.x;
+    }
+    if self.height < 0.0
+    {
+      self_y = self.y + self.height;
+      self_height = self.y;
+    }
+
+    ( self_x <= x && self_x + self_width ) >= x
+    && ( self_y <= y && self_y + self_height >= y )
+  }
 }
 
 //
